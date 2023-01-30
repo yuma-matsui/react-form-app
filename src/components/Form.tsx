@@ -1,72 +1,67 @@
 import { FC } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
-import { User } from "../types/user"
+import { useWizardForm } from "../hooks/useWizardForm"
 
-const ErrorMessage = () => <span className="text-red-700">入力必須です</span>
+import { InputName } from "../types/inputName"
+import { User } from "../types/user"
+import { BaseInputs } from "./BaseInputs"
+
+type FormItems = { name: InputName, label: string }[]
+
+const firstFormItems: FormItems = [
+  { name: 'nickname', label: 'ニックネーム' },
+  { name: 'firstName', label: '名前' },
+  { name: 'lastName', label: '名字' }
+]
+const secondFormItems: FormItems = [
+  { name: 'email', label: 'メールアドレス' },
+  { name: 'phoneNumber', label: '電話番号' }
+]
+const lastFormItems: FormItems = [
+  { name: 'password', label: 'パスワード' },
+  { name: 'passwordConfirmation', label: '確認用' },
+]
+
+const formItems: FormItems[] = [
+  firstFormItems,
+  secondFormItems,
+  lastFormItems
+]
 
 const Form: FC = () => {
-  const { handleSubmit, register, getValues, formState: { errors, isValid, isSubmitting }} = useForm<User>({
-    mode: 'onChange'
-  })
+  const {
+    handleSubmit,
+    register,
+    formState: {
+      isValid,
+      isSubmitting,
+      errors
+    }} = useForm<User>({
+      mode: 'onChange'
+    })
+  const onSubmit: SubmitHandler<User> = (data) => alert(JSON.stringify(data))
 
-  const onSubmit: SubmitHandler<User> = (data) => console.log(data)
+  const forms =
+    formItems
+      .map((items, index) => (
+        <BaseInputs
+          key={index}
+          register={register}
+          errors={errors}
+          formItems={items}
+        />
+      ))
+
+  const { currentForm, isFirstStep, isLastStep, next, back } = useWizardForm(forms)
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center mt-48">
-      <label htmlFor="name">
-        ユーザー名
-        <input
-          type="text"
-          id="name"
-          { ...register('name', { required: true }) }
-        />
-      </label>
-      {errors.name &&
-        <ErrorMessage />
-      }
-
-      <label htmlFor="nickname">
-        ニックネーム
-        <input
-          type="text"
-          id="nickname"
-          { ...register('nickname', { minLength: 4 }) }
-        />
-      </label>
-      {errors.nickname &&
-        <span className="text-red-700">4文字以上で入力してください</span>
-      }
-
-      <label htmlFor="password">
-        パスワード
-        <input
-          type="password"
-          id="password"
-          { ...register('password', { pattern: /\w{6,}/ }) }
-        />
-      </label>
-      {errors.password &&
-        <span className="text-red-700">半角英数字6文字以上で入力してください</span>
-      }
-
-      <label htmlFor="passwordConfirmation">
-        確認用
-        <input
-          type="password"
-          id="passwordConfirmation"
-          { ...register('passwordConfirmation', {
-              validate: (value) => (
-                value === getValues('password') ||
-                'パスワードと一致しません'
-              )
-            })
-          }
-        />
-      </label>
-      {errors.passwordConfirmation &&
-        <span className="text-red-700">{errors.passwordConfirmation.message}</span>
-      }
-      <input type="submit" value="提出する" disabled={!isValid || isSubmitting} />
+      {currentForm}
+      <div>
+        {!isFirstStep && <button type="button" onClick={back} disabled={!isValid || isSubmitting}>&lt;&lt;前へ</button>}
+        {!isLastStep && <button type="button" onClick={next} disabled={!isValid || isSubmitting}>次へ&gt;&gt;</button>}
+        {isLastStep && <button type="submit" disabled={!isValid || isSubmitting}>提出する</button>}
+      </div>
     </form>
   )
 }
