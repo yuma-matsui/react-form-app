@@ -1,5 +1,6 @@
 import { FC } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
+import { useWizardForm } from "../hooks/useWizardForm"
 
 import { InputName } from "../types/inputName"
 import { User } from "../types/user"
@@ -32,24 +33,34 @@ const Form: FC = () => {
     handleSubmit,
     register,
     formState: {
+      isValid,
+      isSubmitting,
       errors
-    }} = useForm<User>()
+    }} = useForm<User>({
+      mode: 'onChange'
+    })
+  const onSubmit: SubmitHandler<User> = (data) => alert(JSON.stringify(data))
 
-  const onSubmit: SubmitHandler<User> = (data) => console.log(data)
-
-  console.log(errors)
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center mt-48">
-      {formItems.map((items, index) => (
+  const forms =
+    formItems
+      .map((items, index) => (
         <BaseInputs
-          key={items[0].name}
           register={register}
           errors={errors}
           formItems={items}
         />
-      ))}
-      <input type="submit" value="提出する" />
+      ))
+
+  const { currentForm, isFirstStep, isLastStep, next, back } = useWizardForm(forms)
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center mt-48">
+      {currentForm}
+      <div>
+        {!isFirstStep && <button onClick={back} disabled={!isValid || isSubmitting}>&lt;&lt;前へ</button>}
+        {!isLastStep && <button onClick={next} disabled={!isValid || isSubmitting}>次へ&gt;&gt;</button>}
+        {isLastStep && <button type="submit" disabled={!isValid || isSubmitting}>提出する</button>}
+      </div>
     </form>
   )
 }
