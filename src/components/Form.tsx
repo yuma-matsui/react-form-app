@@ -45,6 +45,7 @@ const Form: FC = () => {
     formItems
       .map((items, index) => (
         <BaseInputs
+          key={index}
           register={register}
           errors={errors}
           formItems={items}
@@ -57,8 +58,8 @@ const Form: FC = () => {
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center mt-48">
       {currentForm}
       <div>
-        {!isFirstStep && <button onClick={back} disabled={!isValid || isSubmitting}>&lt;&lt;前へ</button>}
-        {!isLastStep && <button onClick={next} disabled={!isValid || isSubmitting}>次へ&gt;&gt;</button>}
+        {!isFirstStep && <button type="button" onClick={back} disabled={!isValid || isSubmitting}>&lt;&lt;前へ</button>}
+        {!isLastStep && <button type="button" onClick={next} disabled={!isValid || isSubmitting}>次へ&gt;&gt;</button>}
         {isLastStep && <button type="submit" disabled={!isValid || isSubmitting}>提出する</button>}
       </div>
     </form>
