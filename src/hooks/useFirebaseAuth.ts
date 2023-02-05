@@ -1,5 +1,7 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, signInWithPopup, setPersistence, browserSessionPersistence, User } from 'firebase/auth'
+import { useEffect, useState } from 'react'
+
 import firebaseConfig from '../config/firebaseConfig'
 
 const useFirebaseAuth = () => {
@@ -7,10 +9,34 @@ const useFirebaseAuth = () => {
   const auth = getAuth()
   const provider = new GoogleAuthProvider()
 
-  const loginWithGoogle = async () => await signInWithPopup(auth, provider)
+  const [user, setUser] = useState<User | null>(null)
+  const signInWithGoogle = async () => {
+    setPersistence(auth, browserSessionPersistence)
+      .then(async () => {
+        const user = (await signInWithPopup(auth, provider)).user
+        setUser(user)
+      })
+  }
+
+  const signOut = async () => await auth.signOut()
+
+  const deleteAccount = async () => {
+    if (user) await user.delete()
+  }
+
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
+      let _user: User | null = null
+      if (user) _user = user
+      setUser(_user)
+    })
+  })
 
   return {
-    loginWithGoogle
+    signInWithGoogle,
+    signOut,
+    user,
+    deleteAccount
   }
 }
 
