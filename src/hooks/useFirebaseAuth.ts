@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup, setPersistence, browserSessionPersistence, User } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, signInWithPopup, setPersistence, User, browserLocalPersistence } from 'firebase/auth'
 import { useEffect, useState } from 'react'
 
 import firebaseConfig from '../config/firebaseConfig'
@@ -11,7 +11,7 @@ const useFirebaseAuth = () => {
 
   const [user, setUser] = useState<User | null>(null)
   const signInWithGoogle = async () => {
-    setPersistence(auth, browserSessionPersistence)
+    setPersistence(auth, browserLocalPersistence)
       .then(async () => {
         const user = (await signInWithPopup(auth, provider)).user
         setUser(user)
