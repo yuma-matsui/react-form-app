@@ -1,24 +1,33 @@
 import useFirebaseAuth from "./hooks/useFirebaseAuth"
 
 function App() {
-  const { signInWithGoogle, user, signOut, deleteAccount } = useFirebaseAuth()
+  const { user, signIn, loading, signOut, deleteUser } = useFirebaseAuth()
 
-  const onClick = async () => await signInWithGoogle()
-  const onClickSignOut = async () => await signOut()
-  const onClickDeleteAccount = async () => await deleteAccount()
+  const onSignOut = async () => {
+    await signOut()
+  }
+  const onDeleteAccount = async () => {
+    await deleteUser()
+  }
 
   return (
-    <div className="App">
-      <button type="button" onClick={onClick}>Googleログイン</button>
-      {user?.uid}
-      {user &&
-        <>
-          <button type="button" onClick={onClickSignOut}>ログアウト</button>
-          <button type="button" onClick={onClickDeleteAccount}>アカウントの削除</button>
-        </>
-      }
-    </div>
-  );
+    loading
+      ? <p>...Loading</p>
+      : (
+        user
+          ? (
+            <>
+              <button onClick={onSignOut}>ログアウト</button>
+              <button onClick={onDeleteAccount}>アカウント削除</button>
+            </>
+          )
+          : (
+            <div className="App">
+              <button type="button" onClick={signIn}>Googleログイン</button>
+            </div>
+          )
+      )
+  )
 }
 
 export default App

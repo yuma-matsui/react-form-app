@@ -1,42 +1,39 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup, setPersistence, User, browserLocalPersistence } from 'firebase/auth'
+import { getAuth, setPersistence, User, browserLocalPersistence } from 'firebase/auth'
 import { useEffect, useState } from 'react'
+import { useAuthState, useDeleteUser, useSignInWithGoogle, useSignOut } from 'react-firebase-hooks/auth'
 
 import firebaseConfig from '../config/firebaseConfig'
 
 const useFirebaseAuth = () => {
   initializeApp(firebaseConfig)
   const auth = getAuth()
-  const provider = new GoogleAuthProvider()
+  const [user, setUser] = useState<User | undefined | null>(undefined)
 
-  const [user, setUser] = useState<User | null>(null)
-  const signInWithGoogle = async () => {
+  const [signInWithGoogle, , loading, error] = useSignInWithGoogle(auth)
+  const [authUser, authLoading, authError ] = useAuthState(auth)
+  const [signOut, signOutLoading, signOutError] = useSignOut(auth)
+  const [deleteUser, deleteLoading, deleteError] = useDeleteUser(auth)
+
+  const signIn = async () => {
     setPersistence(auth, browserLocalPersistence)
-      .then(async () => {
-        const user = (await signInWithPopup(auth, provider)).user
-        setUser(user)
+      .then(() => {
+        signInWithGoogle()
       })
   }
 
-  const signOut = async () => await auth.signOut()
-
-  const deleteAccount = async () => {
-    if (user) await user.delete()
-  }
-
   useEffect(() => {
-    auth.onAuthStateChanged((user) => {
-      let _user: User | null = null
-      if (user) _user = user
-      setUser(_user)
-    })
-  })
+    setUser(authUser)
+  }, [authUser])
+
 
   return {
-    signInWithGoogle,
+    signIn,
     signOut,
+    deleteUser,
     user,
-    deleteAccount
+    loading: authLoading || loading || signOutLoading || deleteLoading,
+    error: error || authError || signOutError || deleteError
   }
 }
 
